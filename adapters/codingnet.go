@@ -25,74 +25,74 @@ package adapters
 */
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"net/http"
+    "encoding/json"
+    "errors"
+    "fmt"
+    "net/http"
 
-	"github.com/youngsterxyf/fuse/adapter_manager"
+    "github.com/youngsterxyf/fuse/adapter_manager"
 )
 
 type CodingNetCommitterStruct struct {
-	Email string
-	Name  string
+    Email string
+    Name  string
 }
 
 type CodingNetCommitInfoStruct struct {
-	Committer     CodingNetCommitterStruct
-	Sha           string
-	Short_message string
+    Committer     CodingNetCommitterStruct
+    Sha           string
+    Short_message string
 }
 
 type CodingNetRepositoryInfoStruct struct {
-	Description string
-	Name        string
-	Url         string
+    Description string
+    Name        string
+    Url         string
 }
 
 type CodingNetPushRequestBodyStruct struct {
-	After      string
-	Before     string
-	Commits    []CodingNetCommitInfoStruct
-	Ref        string
-	Repository CodingNetRepositoryInfoStruct
-	Token      string
+    After      string
+    Before     string
+    Commits    []CodingNetCommitInfoStruct
+    Ref        string
+    Repository CodingNetRepositoryInfoStruct
+    Token      string
 }
 
 type CodingNetStruct struct {
-	id string
+    id string
 }
 
 func (cn CodingNetStruct) Parse(req *http.Request) (filteredEventData adapter_manager.FilteredEventDataStruct, err error) {
-	var prbs CodingNetPushRequestBodyStruct
-	eventDecoder := json.NewDecoder(req.Body)
-	err = eventDecoder.Decode(&prbs)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	// 记录日志
-	// reqBodyStr, _ := json.MarshalIndent(prb, "", "    ")
-	// log.Println(string(reqBodyStr))
+    var prbs CodingNetPushRequestBodyStruct
+    eventDecoder := json.NewDecoder(req.Body)
+    err = eventDecoder.Decode(&prbs)
+    if err != nil {
+        fmt.Println(err.Error())
+        return
+    }
+    // 记录日志
+    // reqBodyStr, _ := json.MarshalIndent(prb, "", "    ")
+    // log.Println(string(reqBodyStr))
 
-	if len(prbs.Ref) == 0 {
-		fmt.Println("请求内容中分支不正确！", prbs.Ref)
-		return filteredEventData, errors.New("请求内容中分支不正确！")
-	}
+    if len(prbs.Ref) == 0 {
+        fmt.Println("请求内容中分支不正确！", prbs.Ref)
+        return filteredEventData, errors.New("请求内容中分支不正确！")
+    }
 
-	commitCount := len(prbs.Commits)
-	if commitCount == 0 {
-		return filteredEventData, errors.New("本次push事件中commit数目为0")
-	}
-	filteredEventData = adapter_manager.FilteredEventDataStruct{
-		ReposRemoteURL: prbs.Repository.Url,
-		BranchName:     prbs.Ref,
-		LatestCommit:   prbs.Commits[commitCount-1].Sha,
-	}
-	return filteredEventData, nil
+    commitCount := len(prbs.Commits)
+    if commitCount == 0 {
+        return filteredEventData, errors.New("本次push事件中commit数目为0")
+    }
+    filteredEventData = adapter_manager.FilteredEventDataStruct{
+        ReposRemoteURL: prbs.Repository.Url,
+        BranchName:     prbs.Ref,
+        LatestCommit:   prbs.Commits[commitCount-1].Sha,
+    }
+    return filteredEventData, nil
 }
 
 func init() {
-	cn := CodingNetStruct{id: "codingnet"}
-	adapter_manager.AdapterRegister("codingnet", cn)
+    cn := CodingNetStruct{id: "codingnet"}
+    adapter_manager.AdapterRegister("codingnet", cn)
 }
